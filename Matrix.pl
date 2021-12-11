@@ -1,6 +1,29 @@
 :- include('KB').
+neo_loc(X,Y,s0,H,[],[]):- neo_loc(X,Y), hostages_loc(H).
+neo_loc(X,Y,S,H,CH,[DH|DT]):-
+	(
+		A = drop,
+		booth(X,Y),
+		length(CH,NC),
+		capacity(C),
+		NC < C,
+		append([DH],CH,NCH),
+		S = result(A,S1),
+		neo_loc(X,Y,S1,H,NCH,DT)
+	);
+	(
+		A = carry,
+		cancarry(CH,[X,Y]),	
+		
+		length(CH,NC),
+		capacity(C),
+		NC =< C,
 
-neo_loc(X,Y,S,CH,H):-
+		remove([X,Y],CH,NCH),
+		append([[X,Y]],H,NH),
+		S = result(A,S1),
+		neo_loc(X,Y,S1,NH,NCH,[DH|DT])
+	);
 	(
 		A = up,
 		U is X+1,
@@ -8,7 +31,7 @@ neo_loc(X,Y,S,CH,H):-
 		U < GX,
 		X >= 0,
 		S = result(A,S1),
-		neo_loc(U,Y,S1,CH,H)
+		neo_loc(U,Y,S1,H,CH,[DH|DT])
 	);
 	(
 		A = down,
@@ -17,7 +40,7 @@ neo_loc(X,Y,S,CH,H):-
 		D >= 0,
 		X < GX,
 		S = result(A,S1),
-		neo_loc(D,Y,S1,CH,H)
+		neo_loc(D,Y,S1,H,CH,[DH|DT])
 	);
 	(
 		
@@ -27,7 +50,7 @@ neo_loc(X,Y,S,CH,H):-
 		grid(_,GY),
 		Y < GY,
 		S = result(A,S1),
-		neo_loc(X,R,S1,CH,H)
+		neo_loc(X,R,S1,H,CH,[DH|DT])
 	);
 	(
 		A = left,
@@ -36,28 +59,9 @@ neo_loc(X,Y,S,CH,H):-
 		L < GY,
 		GY >= 0,
 		S = result(A,S1),
-		neo_loc(X,L,S1,CH,H)
-	);
-	(
-		A = carry,
-		S = result(A,S1),
-		cancarry(H,[X,Y]),
-		length(H,HS), HS > 0,
-		length(CH,NC),
-		capacity(C),
-		NC < C,
-		remove([X,Y],H,NH),
-		append([[X,Y]],CH,NCH),
-		neo_loc(X,Y,S1,NCH,NH)
-	);
-	(
-		A = drop,
-		booth(X,Y),
-		length(CH,NC),
-		NC > 0,
-		S = result(A,S1),
-		neo_loc(X,Y,S1,[],H)
+		neo_loc(X,L,S1,H,CH,[DH|DT])
 	).
+
 	
 cancarry([[H1,H2]], [H1, H2]).
 cancarry([[H1,H2],_|_], [H1, H2]).
@@ -68,12 +72,8 @@ remove([X,Y],[[X,Y]|T],L2):- remove([X,Y],T,L2).
 remove([X,Y],[[A,B]|T],[[A,B]|S]):- 
 	[X,Y]\=[A,B],
 	remove([X,Y],T,S). 
-	
+
 goal(S):-
-	neo_loc(X,Y),
-	hostages_loc(H),
-	neo_loc(X,Y,S,[],H),
-	booth(BX,BY),
-	X == BX, Y == BY,
-	length(H,LH1), LH1 == 0, 
-	print(LH1).
+	booth(X,Y),
+	hostages_loc(DH),
+	neo_loc(X,Y,S,[],[],DH).
