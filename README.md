@@ -1,1 +1,1 @@
-# The-Matrix-2
+This project is composed of a logic-based search agent which operates by storing sentences about the world in its knowledge base, using an inference mechanism to infer new sentences, and using these sentences to decide which action to take in order to construct a search plan.
